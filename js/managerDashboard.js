@@ -1,3 +1,11 @@
+export async function initManagerDashboard(){
+    await loadHeader()
+    setGreeting()
+    setupModal()
+    setupForm()
+}
+
+
 async function loadHeader() {
     const response = await fetch('fragment/header.html');   // dit fragment
     const html = await response.text();
@@ -25,24 +33,20 @@ function setGreeting() {
     }
 }
 
-async function loadDashboard(){
-    const response = await fetch('managerDashboard.html')
-    const html = await response.text()
-    document.getElementById('index').innerHTML = html
-
-    await loadHeader()
-    setGreeting()
-
+function setupModal(){
     const modal = document.getElementById("emp-modal")
     const openModalBtn = document.getElementById("openModalBtn")
     const closeModalBtn = document.querySelector(".close");
-    const empForm = document.getElementById("emp-form");
 
     openModalBtn.onclick = () => modal.style.display = "block";
     closeModalBtn.onclick = () => modal.style.display = "none";
     window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
     document.addEventListener("keydown", (event) => { if (event.key === "Escape") modal.style.display = "none"; });
 
+}
+
+function setupForm(){
+    const empForm = document.getElementById("emp-form");
     empForm.onsubmit = async (event) => {
         event.preventDefault();
 
@@ -65,15 +69,13 @@ async function loadDashboard(){
 
         const response = await fetch("http://localhost:8080/manager/register", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {"Content-Type": "application/json"},
             body: JSON.stringify(employee)
         });
         const result = await response.text();
         alert(result);
         empForm.reset();
-        modal.style.display = "none";
+        document.getElementById("emp-modal").style.display = "none";
     };
 }
-
-window.onload = loadDashboard;
 
