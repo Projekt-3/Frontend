@@ -15,15 +15,23 @@ async function loadDashboard(){
 
     empForm.onsubmit = async (event) => {
         event.preventDefault();
+
+        const phoneValue = document.getElementById("phone").value;
+        if (!phoneValue || isNaN(phoneValue)) {
+            alert("Only numbers is allowed");
+            return;
+        }
+
         const employee = {
             firstname: document.getElementById("firstname").value,
             lastname: document.getElementById("lastname").value,
             username: document.getElementById("username").value,
-            role: document.getElementById("role").value,
+            role: document.getElementById("role").value.toUpperCase(),
             mail: document.getElementById("mail").value,
-            phone: document.getElementById("phone").value,
+            phone: parseInt(phoneValue, 10),
             password: document.getElementById("password").value
         };
+        console.log("Sending employee:", employee);
 
         const response = await fetch("http://localhost:8080/dashboard/employee/create", {
             method: "POST",
