@@ -1,0 +1,24 @@
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background: #0b0b0b;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.05);
+}
+
+.lion-logo {
+    height: 80px;
+    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.4));
+}
+
+#greeting-text {
+    font-size: 32px;
+    margin: 0;
+    background: linear-gradient(180deg, #e8c980 0%, #c39d50 50%, #997632 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+    text-align: right;
+}
