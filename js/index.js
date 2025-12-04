@@ -1,7 +1,35 @@
+async function loadHeader() {
+    const response = await fetch('fragment/header.html');   // dit fragment
+    const html = await response.text();
+    document.getElementById('header').innerHTML = html;
+}
+
+function setGreeting() {
+    const now = new Date();
+    const hour = now.getHours();
+    let greeting = "";
+
+    if (hour < 12) {
+        greeting = "God morgen";
+    } else if (hour < 18) {
+        greeting = "God eftermiddag";
+    } else {
+        greeting = "God aften";
+    }
+
+    const greetingElement = document.getElementById("greeting-text");
+    if (greetingElement) {
+        greetingElement.textContent = greeting;
+    }
+}
+
 async function loadDashboard(){
     const response = await fetch('managerDashboard.html')
     const html = await response.text()
     document.getElementById('index').innerHTML = html
+
+    loadHeader()
+    setGreeting()
 
     const modal = document.getElementById("emp-modal")
     const openModalBtn = document.getElementById("openModalBtn")
@@ -33,7 +61,7 @@ async function loadDashboard(){
         };
         console.log("Sending employee:", employee);
 
-        const response = await fetch("http://localhost:8080/dashboard/employee/create", {
+        const response = await fetch("http://localhost:8080/manager/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(employee)
@@ -46,3 +74,4 @@ async function loadDashboard(){
 }
 
 window.onload = loadDashboard;
+
