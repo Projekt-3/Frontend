@@ -1,3 +1,12 @@
+export async function initManagerDashboard(){
+    await loadHeader()
+    setGreeting()
+    setupModal()
+    setupForm()
+}
+
+
+//--------- HEADER -----------
 async function loadHeader() {
     const response = await fetch('fragment/header.html');   // dit fragment
     const html = await response.text();
@@ -11,6 +20,8 @@ function setGreeting() {
 
     if (hour < 12) {
         greeting = "God morgen";
+    } else if(hour > 10 && hour < 12) {
+        greeting = "God formiddag"
     } else if (hour < 18) {
         greeting = "God eftermiddag";
     } else {
@@ -23,30 +34,35 @@ function setGreeting() {
     }
 }
 
-async function loadDashboard(){
-    const response = await fetch('managerDashboard.html')
-    const html = await response.text()
-    document.getElementById('index').innerHTML = html
-
-    loadHeader()
-    setGreeting()
-
+// -------- MODAL ---------
+function setupModal(){
     const modal = document.getElementById("emp-modal")
     const openModalBtn = document.getElementById("openModalBtn")
     const closeModalBtn = document.querySelector(".close");
-    const empForm = document.getElementById("emp-form");
 
     openModalBtn.onclick = () => modal.style.display = "block";
     closeModalBtn.onclick = () => modal.style.display = "none";
     window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
     document.addEventListener("keydown", (event) => { if (event.key === "Escape") modal.style.display = "none"; });
 
+}
+
+// --------- CREATE EMP -----------
+function setupForm(){
+    const empForm = document.getElementById("emp-form");
+    const usernameInput = document.getElementById("username")
+    const mailInput = document.getElementById("mail")
+
+    usernameInput.addEventListener("input", () => {
+        mailInput.value = usernameInput.value + "@lion.dk";
+    })
+
     empForm.onsubmit = async (event) => {
         event.preventDefault();
 
         const phoneValue = document.getElementById("phone").value;
         if (!phoneValue || isNaN(phoneValue)) {
-            alert("Only numbers is allowed");
+            alert("Må kun indholde tal");
             return;
         }
 
@@ -59,19 +75,16 @@ async function loadDashboard(){
             phone: parseInt(phoneValue, 10),
             password: document.getElementById("password").value
         };
-        console.log("Sending employee:", employee);
 
         const response = await fetch("http://localhost:8080/manager/register", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {"Content-Type": "application/json"},
             body: JSON.stringify(employee)
         });
         const result = await response.text();
         alert(result);
         empForm.reset();
-        modal.style.display = "none";
+        document.getElementById("emp-modal").style.display = "none";
     };
 }
-
-window.onload = loadDashboard;
 
