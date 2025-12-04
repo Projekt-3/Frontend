@@ -62,7 +62,7 @@ function setupForm(){
 
         const phoneValue = document.getElementById("phone").value;
         if (!phoneValue || isNaN(phoneValue)) {
-            alert("Only numbers is allowed");
+            alert("Må kun indholde tal");
             return;
         }
 
@@ -75,7 +75,6 @@ function setupForm(){
             phone: parseInt(phoneValue, 10),
             password: document.getElementById("password").value
         };
-        console.log("Sending employee:", employee);
 
         const response = await fetch("http://localhost:8080/manager/register", {
             method: "POST",
