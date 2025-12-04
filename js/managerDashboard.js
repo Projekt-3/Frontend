@@ -50,6 +50,13 @@ function setupModal(){
 // --------- CREATE EMP -----------
 function setupForm(){
     const empForm = document.getElementById("emp-form");
+    const usernameInput = document.getElementById("username")
+    const mailInput = document.getElementById("mail")
+
+    usernameInput.addEventListener("input", () => {
+        mailInput.value = usernameInput.value + "@lion.dk";
+    })
+
     empForm.onsubmit = async (event) => {
         event.preventDefault();
 
