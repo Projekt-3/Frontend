@@ -11,6 +11,8 @@ function setGreeting() {
 
     if (hour < 12) {
         greeting = "God morgen";
+    } else if(hour > 10 && hour < 12) {
+        greeting = "God formiddag"
     } else if (hour < 18) {
         greeting = "God eftermiddag";
     } else {
@@ -28,7 +30,7 @@ async function loadDashboard(){
     const html = await response.text()
     document.getElementById('index').innerHTML = html
 
-    loadHeader()
+    await loadHeader()
     setGreeting()
 
     const modal = document.getElementById("emp-modal")
