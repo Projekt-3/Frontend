@@ -6,6 +6,7 @@ export async function initManagerDashboard(){
 }
 
 
+//--------- HEADER -----------
 async function loadHeader() {
     const response = await fetch('fragment/header.html');   // dit fragment
     const html = await response.text();
@@ -33,6 +34,7 @@ function setGreeting() {
     }
 }
 
+// -------- MODAL ---------
 function setupModal(){
     const modal = document.getElementById("emp-modal")
     const openModalBtn = document.getElementById("openModalBtn")
@@ -45,6 +47,7 @@ function setupModal(){
 
 }
 
+// --------- CREATE EMP -----------
 function setupForm(){
     const empForm = document.getElementById("emp-form");
     empForm.onsubmit = async (event) => {
