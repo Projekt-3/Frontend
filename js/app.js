@@ -1,16 +1,18 @@
 import { initManagerDashboard } from './managerDashboard.js';
+import { initLogin } from './login.js';
 
-async function navigateTo(page){
-    const response = await fetch(`${page}.html`)
-    const html = await response.text()
-    document.getElementById('index').innerHTML = html
+export async function navigateTo(page) {
+    const response = await fetch(`fragment/${page}.html`);
+    const html = await response.text();
+    document.getElementById('index').innerHTML = html;
 
-    if(page === 'managerDashboard'){
-        initManagerDashboard()
+    if (page === 'managerDashboard') {
+        await initManagerDashboard();
+    } else if (page === 'login') {
+        initLogin();
     }
 }
 
-window.onload = () => {
-    navigateTo('managerDashboard');
+window.onload = async () => {
+    await navigateTo('login'); // start with login page
 };
-
