@@ -1,16 +1,35 @@
 export async function initManagerDashboard(){
+    // Load CSS til dashboard
+    loadCSS('./css/modal.css');
+    loadCSS('./css/dashboard.css');
+    loadCSS('.css/fragment.css');
+
     await loadHeader()
     setGreeting()
     setupModal()
     setupForm()
 }
 
+// Dynamisk load CSS
+function loadCSS(href) {
+    if (!document.querySelector(`link[href="${href}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
+    }
+}
 
 //--------- HEADER -----------
 async function loadHeader() {
-    const response = await fetch('fragment/header.html');   // dit fragment
+    const response = await fetch('fragment/header.html');
     const html = await response.text();
     document.getElementById('header').innerHTML = html;
+
+    const img = document.querySelector('.lion-logo');
+    if (img) {
+        img.src = './image/lion_logo.png';
+    }
 }
 
 function setGreeting() {
@@ -76,7 +95,7 @@ function setupForm(){
             password: document.getElementById("password").value
         };
 
-        const response = await fetch("http://localhost:8080/manager/register", {
+        const response = await fetch("http://localhost:8080/dashboard/manager/register", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(employee)

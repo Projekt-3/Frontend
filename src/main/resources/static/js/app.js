@@ -2,7 +2,7 @@ import { initManagerDashboard } from './managerDashboard.js';
 import { initLogin } from './login.js';
 
 export async function navigateTo(page) {
-    const response = await fetch(`fragment/${page}.html`);
+    const response = await fetch(`./fragment/${page}.html`);
     const html = await response.text();
     document.getElementById('index').innerHTML = html;
 

@@ -1,4 +1,4 @@
-import {navigateTo} from "./app";
+import {navigateTo} from "./app.js";
 
 export function initLogin() {
     const loginForm = document.getElementById("loginForm");
