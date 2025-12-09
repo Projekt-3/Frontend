@@ -166,6 +166,7 @@ function displayEmployeeModal(emp) {
     modal.style.display = "block";
 
     document.getElementById("edit-emp").onclick = () => editEmp(emp)
+    document.getElementById("delete-emp").onclick = () => deleteEmp(emp)
     const closeBtn = modal.querySelector(".close");
     closeBtn.onclick = () => modal.style.display = "none";
 }
@@ -267,3 +268,15 @@ async function saveEmployee(id) {
     await loadEmployees();
 }
 
+// ------- DELETE EMP -------
+async function deleteEmp (employee){
+    const response = await fetch(`http://localhost:8080/dashboard/manager/employees/${id}`, {
+        method: "DELETE",
+        headers: {"Content-Type": "application/json"},
+        credentials: "include"
+    });
+
+    if
+
+
+}
