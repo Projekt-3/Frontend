@@ -2,20 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Login Page</title>
+  <title>Login Side</title>
+  <link rel="stylesheet" href="/css/login.css">
 </head>
-<body>
+<body style="visibility:hidden">
 <div id="header"></div>
-<h1>Sign in</h1>
+
+<h1>Log ind</h1>
 <form id="loginForm">
-  <label for="username" class="input-label">Username</label>
+  <label for="username" class="input-label">Brugernavn</label>
   <input type="text" id="username" required><br>
 
-  <label for="password" class="input-label">Password</label>
+  <label for="password" class="input-label">Kodeord</label>
   <input type="password" id="password" required><br>
 
-  <button type="submit">Login</button>
+  <button type="submit">Log ind</button>
 </form>
 <p id="error" style="color:red;"></p>
+<script type="module" src="/js/login.js"></script>
 </body>
 </html>
