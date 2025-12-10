@@ -8,7 +8,9 @@ export async function initManagerDashboard(){
     setGreeting()
     setupModal("createEmpModal", "create-emp-modal")
     setupModal("readEmpModal", "all-emp-modal")
-    setupForm()
+    setupModal("createShowModal", "create-show-modal");
+    setupEmpForm()
+    setupShowForm()
     await loadEmployees()
 }
 
@@ -75,7 +77,7 @@ function setupModal(openBtnId, modalId){
 }
 
 // --------- CREATE EMP -----------
-function setupForm(){
+function setupEmpForm(){
     const empForm = document.getElementById("emp-form");
     const usernameInput = document.getElementById("username")
     const mailInput = document.getElementById("mail")
@@ -103,7 +105,7 @@ function setupForm(){
             password: document.getElementById("password").value
         };
 
-        const response = await fetch("http://localhost:8080/dashboard/manager/register", {
+        const response = await fetch("http://localhost:8080/dashboard/manager/register/employee", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(employee)
@@ -267,3 +269,28 @@ async function saveEmployee(id) {
     await loadEmployees();
 }
 
+// ---------- CREATE SHOW -------------
+function setupShowForm(){
+    const showForm = document.getElementById("show-form");
+
+    showForm.onsubmit = async (event) => {
+        event.preventDefault();
+
+        const show = {
+            title: document.getElementById("title").value,
+            startDate: document.getElementById("startDate").value,
+            endDate: document.getElementById("endDate").value
+        };
+
+        const response = await fetch("http://localhost:8080/dashboard/manager/register/show", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            credentials: "include",
+            body: JSON.stringify(show)
+        });
+        const result = await response.text();
+        alert(result);
+        showForm.reset();
+        document.getElementById("create-show-modal").style.display = "none";
+    };
+}
