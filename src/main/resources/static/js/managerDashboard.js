@@ -165,6 +165,7 @@ function displayEmployeeModal(emp) {
 
     modal.style.display = "block";
 
+    document.getElementById("edit-emp").onclick = () => editEmp(emp)
     const closeBtn = modal.querySelector(".close");
     closeBtn.onclick = () => modal.style.display = "none";
 }
@@ -197,3 +198,72 @@ function setupEmployeeClick() {
         }
     });
 }
+
+// ------ UPDATE EMP -------
+function editEmp(emp) {
+    const container = document.getElementById("emp-details");
+
+    container.innerHTML = `
+        <label>Fornavn:</label>
+        <input id="edit-firstname" value="${emp.firstname}">
+
+        <label>Efternavn:</label>
+        <input id="edit-lastname" value="${emp.lastname}">
+        
+        <label>Brugernavn:</label>
+        <input id="edit-username" value="${emp.username}">
+
+        <label>Mail:</label>
+        <input id="edit-mail" value="${emp.mail}" readonly>
+
+        <label>Rolle:</label>
+        <select id="edit-role" class="select">
+            <option value="CREW" ${emp.role === "CREW" ? "selected" : ""}>Crew</option>
+            <option value="CAST" ${emp.role === "CAST" ? "selected" : ""}>Cast</option>
+            <option value="TECH" ${emp.role === "TECH" ? "selected" : ""}>Tech</option>
+            <option value="MANAGER" ${emp.role === "MANAGER" ? "selected" : ""}>Manager</option>
+        </select>
+
+        <label>Telefon:</label>
+        <input id="edit-phone" value="${emp.phone}">
+
+        <button id="save-emp-btn">Gem ændringer</button>
+    `;
+
+    const usernameInput = document.getElementById("edit-username");
+    const mailInput = document.getElementById("edit-mail");
+
+    usernameInput.addEventListener("input", () => {
+        mailInput.value = usernameInput.value + "@lion.dk";
+    });
+
+    document.getElementById("save-emp-btn").onclick = () => saveEmployee(emp.id);
+}
+
+async function saveEmployee(id) {
+    const updatedEmp = {
+        firstname: document.getElementById("edit-firstname").value,
+        lastname: document.getElementById("edit-lastname").value,
+        username: document.getElementById("edit-username").value,
+        mail: document.getElementById("edit-mail").value,
+        role: document.getElementById("edit-role").value.toUpperCase(),
+        phone: Number(document.getElementById("edit-phone").value)
+    };
+
+    const response = await fetch(`http://localhost:8080/dashboard/manager/employees/${id}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        credentials: "include",
+        body: JSON.stringify(updatedEmp)
+    });
+
+    if (!response.ok) {
+        alert("Fejl ved opdatering");
+        return;
+    }
+
+    alert("Medarbejder opdateret!");
+    document.getElementById("view-emp-modal").style.display = "none";
+    await loadEmployees();
+}
+
