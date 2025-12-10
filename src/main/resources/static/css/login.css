@@ -51,7 +51,7 @@ form {
     height: 80px;
     filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.4));
 }
-/* ===== Centered login box ===== */
+
 #loginForm {
     max-width: 350px;
     margin: 40px auto 0 auto;
@@ -61,7 +61,6 @@ form {
     box-shadow: 0 0 8px rgba(255, 215, 0, 0.25);
 }
 
-/* Inputs og knapper skal ikke være 100% af hele skærmen, men 100% af boksen */
 #loginForm input,
 #loginForm button {
     width: 100%;
