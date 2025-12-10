@@ -276,7 +276,6 @@ async function deleteEmp (employee){
         credentials: "include"
     });
 
-    if
 
 
 }
