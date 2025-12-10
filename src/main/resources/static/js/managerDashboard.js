@@ -6,8 +6,10 @@ export async function initManagerDashboard(){
 
     await loadHeader()
     setGreeting()
-    setupModal()
+    setupModal("createEmpModal", "create-emp-modal")
+    setupModal("readEmpModal", "all-emp-modal")
     setupForm()
+    await loadEmployees()
 }
 
 // Dynamisk load CSS
@@ -54,12 +56,18 @@ function setGreeting() {
 }
 
 // -------- MODAL ---------
-function setupModal(){
-    const modal = document.getElementById("emp-modal")
-    const openModalBtn = document.getElementById("openModalBtn")
-    const closeModalBtn = document.querySelector(".close");
+function setupModal(openBtnId, modalId){
+    const modal = document.getElementById(modalId)
+    const openModalBtn = document.getElementById(openBtnId)
+    const closeModalBtn = modal.querySelector(".close");
 
-    openModalBtn.onclick = () => modal.style.display = "block";
+    openModalBtn.onclick = async () => {
+        if(modalId === "all-emp-modal"){
+            await loadEmployees();
+        }
+        modal.style.display = "block";
+    }
+
     closeModalBtn.onclick = () => modal.style.display = "none";
     window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
     document.addEventListener("keydown", (event) => { if (event.key === "Escape") modal.style.display = "none"; });
@@ -107,3 +115,85 @@ function setupForm(){
     };
 }
 
+// ---------- LOAD EMPLOYEES ------------
+async function loadEmployees(){
+    const response = await fetch("http://localhost:8080/dashboard/manager/employees", {
+        method: "GET",
+        credentials: "include"
+    })
+
+    if(!response.ok){
+        console.error("fejl ved indhentning af medarbejdere")
+        return;
+    }
+
+    const employees = await response.json()
+    console.log("medarbejdere hentet", employees);
+    displayEmployees(employees)
+
+}
+
+function displayEmployees(list){
+    const container = document.getElementById("emp-list")
+    console.log("container fundet: ", container)
+    container.innerHTML = ""
+
+    list.forEach(emp => {
+        const div = document.createElement("div")
+        div.className = "emp"
+        div.dataset.id = emp.id;
+        div.textContent = `${emp.firstname} ${emp.lastname}`
+        container.appendChild(div)
+    })
+
+    setupEmployeeClick();
+}
+
+
+// ---- LOAD SPECIFIC EMPLOYEE ----
+function displayEmployeeModal(emp) {
+    const modal = document.getElementById("emp-modal");
+    const container = document.getElementById("emp-details");
+
+    container.innerHTML = `
+        <p><strong>Navn:</strong> ${emp.firstname} ${emp.lastname}</p>
+        <p><strong>Brugernavn:</strong> ${emp.username}</p>
+        <p><strong>Mail:</strong> ${emp.mail}</p>
+        <p><strong>Rolle:</strong> ${emp.role}</p>
+        <p><strong>Telefon:</strong> ${emp.phone}</p>
+    `;
+
+    modal.style.display = "block";
+
+    const closeBtn = modal.querySelector(".close");
+    closeBtn.onclick = () => modal.style.display = "none";
+}
+
+function setupEmployeeClick() {
+    const container = document.getElementById("emp-list");
+
+    container.addEventListener("click", async (event) => {
+        const div = event.target.closest(".emp");
+        if (!div) return;
+
+        const id = div.dataset.id;
+        if (!id) return;
+
+        try {
+            const response = await fetch(`http://localhost:8080/dashboard/manager/employees/${id}`, {
+                credentials: "include"
+            });
+
+            if (!response.ok) {
+                alert("Kunne ikke hente medarbejder info");
+                return;
+            }
+
+            const emp = await response.json();
+            displayEmployeeModal(emp);
+
+        } catch (err) {
+            console.error(err);
+        }
+    });
+}
