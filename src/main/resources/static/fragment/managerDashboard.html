@@ -9,9 +9,11 @@
 <body>
 <div id="header"></div>
 
-<button id="openModalBtn">Opret medarbejder</button>
+<button id="createEmpModal">Opret medarbejder</button>
+<button id="readEmpModal">Alle medarbejdere</button>
 
-<div id="emp-modal" class="modal">
+<!--  CREATE EMP -->
+<div id="create-emp-modal" class="modal">
   <div class="modal-content">
     <span class="close">&times;</span>
     <h2>Opret medarbejder</h2>
@@ -45,6 +47,26 @@
 
       <button type="submit">Gem</button>
     </form>
+  </div>
+</div>
+
+
+<!--  READ ALL EMP -->
+<div id="all-emp-modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Alle medarbejdere</h2>
+    <div id="emp-list"></div>
+  </div>
+</div>
+
+
+<!--  READ EMP -->
+<div id="emp-modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <div id="emp-details"></div>
+    <button id="edit-emp">Rediger</button>
   </div>
 </div>
 
