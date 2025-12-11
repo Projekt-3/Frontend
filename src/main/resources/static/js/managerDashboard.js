@@ -10,6 +10,7 @@ export async function initManagerDashboard(){
     setupModal("readEmpModal", "all-emp-modal")
     setupModal("createShowModal", "create-show-modal");
     setupEmpForm()
+    setupEmployeeClick()
     setupShowForm()
     await loadEmployees()
 }
@@ -177,6 +178,7 @@ function displayEmployeeModal(emp) {
     modal.style.display = "block";
 
     document.getElementById("edit-emp").onclick = () => editEmp(emp)
+    document.getElementById("delete-emp").onclick = () => deleteEmp(emp)
     const closeBtn = modal.querySelector(".close");
     closeBtn.onclick = () => modal.style.display = "none";
 }
@@ -202,6 +204,7 @@ function setupEmployeeClick() {
             }
 
             const emp = await response.json();
+            console.log("Modtaget employee:", emp);
             displayEmployeeModal(emp);
 
         } catch (err) {
@@ -274,7 +277,7 @@ async function saveEmployee(id) {
     }
 
     alert("Medarbejder opdateret!");
-    document.getElementById("view-emp-modal").style.display = "none";
+    document.getElementById("emp-modal").style.display = "none";
     await loadEmployees();
 }
 
@@ -319,4 +322,25 @@ function setupShowForm(){
         showForm.reset();
         document.getElementById("create-show-modal").style.display = "none";
     };
+}
+// ------- DELETE EMP -------
+async function deleteEmp(employee) {
+    const id = employee.id;
+
+    const confirmed = confirm("Er du sikker på at du vil slette denne medarbejder?");
+    if (!confirmed) return;
+
+    const response = await fetch(`http://localhost:8080/dashboard/manager/employees/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+    });
+
+    if (response.ok) {
+        alert("Medarbejder slettet");
+        document.getElementById("emp-modal").style.display = "none";
+        await loadEmployees();
+    } else {
+        const msg = await response.text();
+        alert("Fejl: " + msg);
+    }
 }
