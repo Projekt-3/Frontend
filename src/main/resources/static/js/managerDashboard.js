@@ -8,10 +8,12 @@ export async function initManagerDashboard(){
     setGreeting()
     setupModal("createEmpModal", "create-emp-modal")
     setupModal("readEmpModal", "all-emp-modal")
-    setupModal("createShowModal", "create-show-modal");
+    setupModal("createShowModal", "create-show-modal")
+    setupModal("createShiftModal", "create-shift-modal");
     setupEmpForm()
     setupEmployeeClick()
     setupShowForm()
+    setupShiftForm()
     await loadEmployees()
 }
 
@@ -343,4 +345,29 @@ async function deleteEmp(employee) {
         const msg = await response.text();
         alert("Fejl: " + msg);
     }
+}
+
+// ---------- CREATE SHIFT -------------
+function setupShiftForm() {
+    const shiftForm = document.getElementById("shift-form");
+
+    shiftForm.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const shift = {
+            plannedStart: document.getElementById("plannedStart").value,
+            plannedEnd: document.getElementById("plannedEnd").value
+        };
+
+        const respone = await fetch("http://localhost:8080/dashboard/manager/register/shift", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(shift)
+        });
+
+        const result = await respone.text();
+        alert(result);
+        shiftForm.reset();
+        document.getElementById("create-shift-modal").style.display = "none";
+    })
 }
