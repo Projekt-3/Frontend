@@ -11,6 +11,7 @@ export async function initManagerDashboard(){
     setupModal("createShowModal", "create-show-modal")
     setupModal("createShiftModal", "create-shift-modal");
     setupEmpForm()
+    setupEmployeeClick()
     setupShowForm()
     setupShiftForm()
     await loadEmployees()
@@ -68,6 +69,15 @@ function setupModal(openBtnId, modalId){
     openModalBtn.onclick = async () => {
         if(modalId === "all-emp-modal"){
             await loadEmployees();
+        }
+        if (modalId === "create-show-modal") {
+            const response = await fetch("http://localhost:8080/dashboard/manager/employees",{
+                method: "GET",
+                credentials: "include"
+            });
+
+            const employees = await response.json()
+            populateEmployeeSelect(employees)
         }
         modal.style.display = "block";
     }
@@ -170,6 +180,7 @@ function displayEmployeeModal(emp) {
     modal.style.display = "block";
 
     document.getElementById("edit-emp").onclick = () => editEmp(emp)
+    document.getElementById("delete-emp").onclick = () => deleteEmp(emp)
     const closeBtn = modal.querySelector(".close");
     closeBtn.onclick = () => modal.style.display = "none";
 }
@@ -195,6 +206,7 @@ function setupEmployeeClick() {
             }
 
             const emp = await response.json();
+            console.log("Modtaget employee:", emp);
             displayEmployeeModal(emp);
 
         } catch (err) {
@@ -267,8 +279,21 @@ async function saveEmployee(id) {
     }
 
     alert("Medarbejder opdateret!");
-    document.getElementById("view-emp-modal").style.display = "none";
+    document.getElementById("emp-modal").style.display = "none";
     await loadEmployees();
+}
+
+//---------SHOW EMPLOYEES--------------
+function populateEmployeeSelect(employees) {
+    const select = document.getElementById("employee");
+    select.innerHTML = ""; // ryd eksisterende options
+
+    employees.forEach(emp => {
+        const option = document.createElement("option");
+        option.value = emp.id;
+        option.textContent = `${emp.firstname} ${emp.lastname} (${emp.role})`;
+        select.appendChild(option);
+    });
 }
 
 // ---------- CREATE SHOW -------------
@@ -278,16 +303,20 @@ function setupShowForm(){
     showForm.onsubmit = async (event) => {
         event.preventDefault();
 
+        const selectedEmployees = Array.from(
+            document.getElementById("employee").selectedOptions
+        ).map(opt =>Number( opt.value));
+
         const show = {
-            title: document.getElementById("title").value,
+            name: document.getElementById("title").value,
             startDate: document.getElementById("startDate").value,
-            endDate: document.getElementById("endDate").value
+            endDate: document.getElementById("endDate").value,
+            employees: selectedEmployees
         };
 
         const response = await fetch("http://localhost:8080/dashboard/manager/register/show", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            credentials: "include",
             body: JSON.stringify(show)
         });
         const result = await response.text();
@@ -295,6 +324,27 @@ function setupShowForm(){
         showForm.reset();
         document.getElementById("create-show-modal").style.display = "none";
     };
+}
+// ------- DELETE EMP -------
+async function deleteEmp(employee) {
+    const id = employee.id;
+
+    const confirmed = confirm("Er du sikker på at du vil slette denne medarbejder?");
+    if (!confirmed) return;
+
+    const response = await fetch(`http://localhost:8080/dashboard/manager/employees/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+    });
+
+    if (response.ok) {
+        alert("Medarbejder slettet");
+        document.getElementById("emp-modal").style.display = "none";
+        await loadEmployees();
+    } else {
+        const msg = await response.text();
+        alert("Fejl: " + msg);
+    }
 }
 
 // ---------- CREATE SHIFT -------------
@@ -312,7 +362,6 @@ function setupShiftForm() {
         const respone = await fetch("http://localhost:8080/dashboard/manager/register/shift", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            credentials: "include",
             body: JSON.stringify(shift)
         });
 
