@@ -67,6 +67,15 @@ function setupModal(openBtnId, modalId){
         if(modalId === "all-emp-modal"){
             await loadEmployees();
         }
+        if (modalId === "create-show-modal") {
+            const response = await fetch("http://localhost:8080/dashboard/manager/employees",{
+                method: "GET",
+                credentials: "include"
+            });
+
+            const employees = await response.json()
+            populateEmployeeSelect(employees)
+        }
         modal.style.display = "block";
     }
 
@@ -269,6 +278,19 @@ async function saveEmployee(id) {
     await loadEmployees();
 }
 
+//---------SHOW EMPLOYEES--------------
+function populateEmployeeSelect(employees) {
+    const select = document.getElementById("employee");
+    select.innerHTML = ""; // ryd eksisterende options
+
+    employees.forEach(emp => {
+        const option = document.createElement("option");
+        option.value = emp.id;
+        option.textContent = `${emp.firstname} ${emp.lastname} (${emp.role})`;
+        select.appendChild(option);
+    });
+}
+
 // ---------- CREATE SHOW -------------
 function setupShowForm(){
     const showForm = document.getElementById("show-form");
@@ -276,16 +298,20 @@ function setupShowForm(){
     showForm.onsubmit = async (event) => {
         event.preventDefault();
 
+        const selectedEmployees = Array.from(
+            document.getElementById("employee").selectedOptions
+        ).map(opt =>Number( opt.value));
+
         const show = {
-            title: document.getElementById("title").value,
+            name: document.getElementById("title").value,
             startDate: document.getElementById("startDate").value,
-            endDate: document.getElementById("endDate").value
+            endDate: document.getElementById("endDate").value,
+            employees: selectedEmployees
         };
 
         const response = await fetch("http://localhost:8080/dashboard/manager/register/show", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            credentials: "include",
             body: JSON.stringify(show)
         });
         const result = await response.text();
