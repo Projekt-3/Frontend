@@ -79,6 +79,14 @@ function setupModal(openBtnId, modalId){
             const employees = await response.json()
             populateEmployeeSelect(employees)
         }
+        if (modalId === "create-shift-modal") {
+            const response = await fetch("http://localhost:8080/dashboard/manager/shows", {
+                method: "GET",
+                credentials: "include"
+            });
+            const shows = await response.json();
+            showSelect(shows);
+        }
         modal.style.display = "block";
     }
 
@@ -348,6 +356,18 @@ async function deleteEmp(employee) {
 }
 
 // ---------- CREATE SHIFT -------------
+function showSelect(shows) {
+    const select = document.getElementById("showSelect");
+    select.innerHTML = "";
+
+    shows.forEach(show => {
+        const option = document.createElement("option")
+        option.value = show.id;
+        option.textContent = show.title
+        select.appendChild(option)
+    })
+}
+
 function setupShiftForm() {
     const shiftForm = document.getElementById("shift-form");
 
@@ -356,16 +376,19 @@ function setupShiftForm() {
 
         const shift = {
             plannedStart: document.getElementById("plannedStart").value,
-            plannedEnd: document.getElementById("plannedEnd").value
+            plannedEnd: document.getElementById("plannedEnd").value,
+            show: {
+                id: Number(document.getElementById("showSelect").value) // Konverterer value fra string til et tal
+            }
         };
 
-        const respone = await fetch("http://localhost:8080/dashboard/manager/register/shift", {
+        const response = await fetch("http://localhost:8080/dashboard/manager/register/shift", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(shift)
         });
 
-        const result = await respone.text();
+        const result = await response.text();
         alert(result);
         shiftForm.reset();
         document.getElementById("create-shift-modal").style.display = "none";
