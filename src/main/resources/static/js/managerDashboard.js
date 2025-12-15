@@ -10,6 +10,7 @@ export async function initManagerDashboard(){
     setupModal("readEmpModal", "all-emp-modal")
     setupModal("createShowModal", "create-show-modal")
     setupModal("createShiftModal", "create-shift-modal");
+    setupModal("readAllShifts", "all-shifts-modal")
     setupEmpForm()
     setupEmployeeClick()
     setupShowForm()
@@ -93,6 +94,10 @@ function setupModal(openBtnId, modalId){
             showSelect(shows);
         }
         modal.style.display = "block";
+
+        if (modalId === "all-shifts-modal") {
+            await loadShifts();
+        }
     }
 
     closeModalBtn.onclick = () => modal.style.display = "none";
@@ -400,6 +405,42 @@ function setupShiftForm() {
         shiftForm.reset();
         document.getElementById("create-shift-modal").style.display = "none";
     })
+}
+
+// ---------- LOAD SHIFTS --------------
+async function loadShifts() {
+
+    const token = sessionStorage.getItem("token");
+    const response = await fetch("http://localhost:8080/dashboard/manager/shifts", {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+
+    })
+
+    if (!response.ok) {
+        console.error("Fejl ved indhentning af vager");
+        return;
+    }
+
+    const shifts = await response.json();
+    displayShifts(shifts);
+}
+
+function displayShifts(list) {
+    const container = document.getElementById("shift-list")
+    container.innerHTML = "";
+
+    list.forEach(shift => {
+        const div = document.createElement("div")
+        div.className = "shift"
+
+        div.textContent = `${shift.showTitle || "Ingen forestilling"}
+        ${shift.plannedStart} - ${shift.plannedEnd}
+        (Vagt #${shift.id})`;
+        container.appendChild(div);
+    });
 }
 
 
