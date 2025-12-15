@@ -97,19 +97,21 @@
 <button id="createShiftModal">Opret vagt</button>
 
 <div id="create-shift-modal" class="modal">
-<div class="modal-content">
-  <span class="close">&times;</span>
-  <h2>Opret vagt</h2>
-  <form id="shift-form">
-    <label for="plannedStart">Starttidspunkt</label>
-    <input type="time" id="plannedStart" required>
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Opret vagt</h2>
+    <form id="shift-form">
+      <label for="plannedStart">Starttidspunkt</label>
+      <input type="time" id="plannedStart" required>
 
-    <label for="plannedEnd">Sluttidspunkt</label>
-    <input type="time" id="plannedEnd" required>
-    <button type="submit">Gem</button>
-  </form>
+      <label for="plannedEnd">Sluttidspunkt</label>
+      <input type="time" id="plannedEnd" required>
+      <button type="submit">Gem</button>
+    </form>
+  </div>
 </div>
-</div>
+<!-- shows -->
+<div id="shows-container" class="shows-grid"></div>
 
 </body>
 </html>
