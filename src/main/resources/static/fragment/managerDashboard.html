@@ -98,7 +98,7 @@
 
 <div id="create-shift-modal" class="modal">
   <div class="modal-content">
-    <span class="close"></span>
+    <span class="close">&times;</span>
     <h2>Opret vagt</h2>
     <form id="shift-form">
       <label for="plannedStart">Starttidspunkt</label>
@@ -114,6 +114,18 @@
     </form>
   </div>
 </div>
+
+<!--  READ ALL shifts -->
+<button id="readAllShifts">Alle vagter</button>
+
+<div id="all-shifts-modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Alle vagter</h2>
+    <div id="shift-list"></div>
+  </div>
+</div>
+
 <!-- shows -->
 <div id="shows-container" class="shows-grid"></div>
 
