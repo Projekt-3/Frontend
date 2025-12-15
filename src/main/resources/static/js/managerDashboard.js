@@ -80,9 +80,13 @@ function setupModal(openBtnId, modalId){
             populateEmployeeSelect(employees)
         }
         if (modalId === "create-shift-modal") {
+            const token = sessionStorage.getItem("token");
+
             const response = await fetch("http://localhost:8080/dashboard/manager/shows", {
                 method: "GET",
-                credentials: "include"
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
             });
             const shows = await response.json();
             showSelect(shows);
@@ -91,7 +95,7 @@ function setupModal(openBtnId, modalId){
     }
 
     closeModalBtn.onclick = () => modal.style.display = "none";
-    window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+    window.onclick = (event) => { if (event.target === modal) modal.style.display = "none"; };
     document.addEventListener("keydown", (event) => { if (event.key === "Escape") modal.style.display = "none"; });
 
 }
