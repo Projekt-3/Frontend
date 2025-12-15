@@ -14,6 +14,7 @@ export async function initManagerDashboard(){
     setupEmployeeClick()
     setupShowForm()
     setupShiftForm()
+    await loadShows()
     await loadEmployees()
 }
 
@@ -323,6 +324,8 @@ function setupShowForm(){
         alert(result);
         showForm.reset();
         document.getElementById("create-show-modal").style.display = "none";
+
+        await loadShows();
     };
 }
 // ------- DELETE EMP -------
@@ -371,3 +374,90 @@ function setupShiftForm() {
         document.getElementById("create-shift-modal").style.display = "none";
     })
 }
+
+
+//--------------------LOAD SHOWS-----------
+async function loadShows() {
+    try {
+        const response = await fetch("http://localhost:8080/dashboard/manager/shows", {
+            method: "GET",
+            //credentials: "include"
+        });
+
+        if (!response.ok) {
+            console.error("Fejl ved indhentning af forestillinger");
+            return;
+        }
+
+        const shows = await response.json();
+        displayShows(shows);
+    } catch (error) {
+        console.error("fejl: ", error);
+
+    }
+}
+
+function displayShows(list) {
+    const container = document.getElementById("shows-container");
+    container.innerHTML = "";
+
+    list.forEach(show => {
+        const card = document.createElement("div");
+        card.className = "show-card";
+
+        const start = new Date(show.startDate).toLocaleDateString("da-DK");
+        const end = new Date(show.endDate).toLocaleDateString("da-DK");
+
+        card.innerHTML = `
+            <div class="show-title">${show.title}</div>
+            <div class="show-dates">Start: ${start}<br>Slut: ${end}</div>
+        `;
+
+        // Tilføj klik-event
+        card.addEventListener("click", () => {
+            openShowDetails(show);
+        });
+
+        container.appendChild(card);
+    });
+}
+
+function openShowDetails(show) {
+    // Find eller opret modal
+    let modal = document.getElementById("show-modal");
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "show-modal";
+        modal.className = "modal";
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="show-title"></h2>
+                <p id="show-dates"></p>
+                <p id="show-employees"></p>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        modal.querySelector(".close").onclick = () => {
+            modal.style.display = "none";
+        };
+
+        window.onclick = (event) => {
+            if (event.target == modal) modal.style.display = "none";
+        };
+    }
+
+    // Sæt indhold
+    modal.querySelector("#show-title").textContent = show.title;
+    modal.querySelector("#show-dates").textContent = `Start: ${show.startDate} | Slut: ${show.endDate}`;
+    modal.querySelector("#show-employees").textContent =
+        `Medarbejdere: ${ (show.employees || []).map(e => e.firstname + " " + e.lastname).join(", ") || "Ingen" }`;
+
+    modal.style.display = "block";
+}
+
+
+
+
+
