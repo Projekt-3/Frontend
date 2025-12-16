@@ -1,5 +1,6 @@
-export async function initManagerDashboard(){
-    // Load CSS til dashboard
+import {loadCSS, loadHeader, setGreeting, logOut} from "./general.js";
+
+export async function initManagerDashboard() {
     loadCSS('./css/modal.css');
     loadCSS('./css/dashboard.css');
     loadCSS('.css/fragment.css');
@@ -19,65 +20,26 @@ export async function initManagerDashboard(){
     await loadShows()
     await loadEmployees()
     await loadShifts()
-}
-
-// Dynamisk load CSS
-function loadCSS(href) {
-    if (!document.querySelector(`link[href="${href}"]`)) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = href;
-        document.head.appendChild(link);
-    }
-}
-
-//--------- HEADER -----------
-async function loadHeader() {
-    const response = await fetch('fragment/header.html');
-    const html = await response.text();
-    document.getElementById('header').innerHTML = html;
-
-    const img = document.querySelector('.lion-logo');
-    if (img) {
-        img.src = './image/lion_logo.png';
-    }
-}
-
-function setGreeting() {
-    const now = new Date();
-    const hour = now.getHours();
-    let greeting = "";
-
-    if (hour < 12) {
-        greeting = "God morgen";
-    } else if(hour > 10 && hour < 12) {
-        greeting = "God formiddag"
-    } else if (hour < 18) {
-        greeting = "God eftermiddag";
-    } else {
-        greeting = "God aften";
-    }
-
-    const greetingElement = document.getElementById("greeting-text");
-    if (greetingElement) {
-        greetingElement.textContent = greeting;
-    }
+    logOut()
 }
 
 // -------- MODAL ---------
-function setupModal(openBtnId, modalId){
+function setupModal(openBtnId, modalId) {
     const modal = document.getElementById(modalId)
     const openModalBtn = document.getElementById(openBtnId)
     const closeModalBtn = modal.querySelector(".close");
 
     openModalBtn.onclick = async () => {
-        if(modalId === "all-emp-modal"){
+        if (modalId === "all-emp-modal") {
             await loadEmployees();
         }
         if (modalId === "create-show-modal") {
-            const response = await fetch("http://localhost:8080/dashboard/manager/employees",{
+            const token = sessionStorage.getItem("token")
+            const response = await fetch("http://localhost:8080/dashboard/manager/employees", {
                 method: "GET",
-                credentials: "include"
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
             });
 
             const employees = await response.json()
@@ -85,7 +47,6 @@ function setupModal(openBtnId, modalId){
         }
         if (modalId === "create-shift-modal") {
             const token = sessionStorage.getItem("token");
-
             const response = await fetch("http://localhost:8080/dashboard/manager/shows", {
                 method: "GET",
                 headers: {
@@ -103,13 +64,17 @@ function setupModal(openBtnId, modalId){
     }
 
     closeModalBtn.onclick = () => modal.style.display = "none";
-    window.onclick = (event) => { if (event.target === modal) modal.style.display = "none"; };
-    document.addEventListener("keydown", (event) => { if (event.key === "Escape") modal.style.display = "none"; });
+    window.onclick = (event) => {
+        if (event.target === modal) modal.style.display = "none";
+    };
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") modal.style.display = "none";
+    });
 
 }
 
 // --------- CREATE EMP -----------
-function setupEmpForm(){
+function setupEmpForm() {
     const empForm = document.getElementById("emp-form");
     const usernameInput = document.getElementById("username")
     const mailInput = document.getElementById("mail")
@@ -137,9 +102,13 @@ function setupEmpForm(){
             password: document.getElementById("password").value
         };
 
+        const token = sessionStorage.getItem("token")
         const response = await fetch("http://localhost:8080/dashboard/manager/register/employee", {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
             body: JSON.stringify(employee)
         });
         const result = await response.text();
@@ -150,13 +119,16 @@ function setupEmpForm(){
 }
 
 // ---------- LOAD EMPLOYEES ------------
-async function loadEmployees(){
+async function loadEmployees() {
+    const token = sessionStorage.getItem("token")
     const response = await fetch("http://localhost:8080/dashboard/manager/employees", {
         method: "GET",
-        credentials: "include"
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
     })
 
-    if(!response.ok){
+    if (!response.ok) {
         console.error("fejl ved indhentning af medarbejdere")
         return;
     }
@@ -167,7 +139,7 @@ async function loadEmployees(){
 
 }
 
-function displayEmployees(list){
+function displayEmployees(list) {
     const container = document.getElementById("emp-list")
     console.log("container fundet: ", container)
     container.innerHTML = ""
@@ -216,8 +188,9 @@ function setupEmployeeClick() {
         if (!id) return;
 
         try {
+            const token = sessionStorage.getItem("token")
             const response = await fetch(`http://localhost:8080/dashboard/manager/employees/${id}`, {
-                credentials: "include"
+                headers: { "Authorization": `Bearer ${token}`}
             });
 
             if (!response.ok) {
@@ -286,10 +259,10 @@ async function saveEmployee(id) {
         phone: Number(document.getElementById("edit-phone").value)
     };
 
+    const token = sessionStorage.getItem("token")
     const response = await fetch(`http://localhost:8080/dashboard/manager/employees/${id}`, {
         method: "PUT",
-        headers: {"Content-Type": "application/json"},
-        credentials: "include",
+        headers: {"Content-Type": "application/json","Authorization": `Bearer ${token}`},
         body: JSON.stringify(updatedEmp)
     });
 
@@ -317,7 +290,7 @@ function populateEmployeeSelect(employees) {
 }
 
 // ---------- CREATE SHOW -------------
-function setupShowForm(){
+function setupShowForm() {
     const showForm = document.getElementById("show-form");
 
     showForm.onsubmit = async (event) => {
@@ -325,7 +298,7 @@ function setupShowForm(){
 
         const selectedEmployees = Array.from(
             document.getElementById("employee").selectedOptions
-        ).map(opt =>Number( opt.value));
+        ).map(opt => Number(opt.value));
 
         const show = {
             name: document.getElementById("title").value,
@@ -334,9 +307,10 @@ function setupShowForm(){
             employees: selectedEmployees
         };
 
+        const token = sessionStorage.getItem("token")
         const response = await fetch("http://localhost:8080/dashboard/manager/register/show", {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: {"Content-Type": "application/json","Authorization": `Bearer ${token}`},
             body: JSON.stringify(show)
         });
         const result = await response.text();
@@ -347,6 +321,7 @@ function setupShowForm(){
         await loadShows();
     };
 }
+
 // ------- DELETE EMP -------
 async function deleteEmp(employee) {
     const id = employee.id;
@@ -354,9 +329,10 @@ async function deleteEmp(employee) {
     const confirmed = confirm("Er du sikker på at du vil slette denne medarbejder?");
     if (!confirmed) return;
 
+    const token = sessionStorage.getItem("token")
     const response = await fetch(`http://localhost:8080/dashboard/manager/employees/${id}`, {
         method: "DELETE",
-        credentials: "include"
+        headers: {"Authorization": `Bearer ${token}`}
     });
 
     if (response.ok) {
@@ -396,9 +372,10 @@ function setupShiftForm() {
             }
         };
 
+        const token = sessionStorage.getItem("token")
         const response = await fetch("http://localhost:8080/dashboard/manager/register/shift", {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: {"Content-Type": "application/json", "Authorization": `Bearer ${token}`},
             body: JSON.stringify(shift)
         });
 
@@ -462,8 +439,8 @@ function displayShiftModal(shift) {
     document.getElementById("delete-shift").onclick = function () {
         deleteShift(shift);
     }
-        const closeBtn = modal.querySelector(".close")
-        closeBtn.onclick = () => modal.style.display = "none";
+    const closeBtn = modal.querySelector(".close")
+    closeBtn.onclick = () => modal.style.display = "none";
 }
 
 function setupShiftClick() {
@@ -530,9 +507,10 @@ async function deleteShift(shift) {
 //--------------------LOAD SHOWS-----------
 async function loadShows() {
     try {
+        const token = sessionStorage.getItem("token")
         const response = await fetch("http://localhost:8080/dashboard/manager/shows", {
             method: "GET",
-            //credentials: "include"
+            headers: {  "Authorization": `Bearer ${token}`}
         });
 
         if (!response.ok) {
@@ -574,7 +552,6 @@ function displayShows(list) {
 }
 
 function openShowDetails(show) {
-    // Find eller opret modal
     let modal = document.getElementById("show-modal");
     if (!modal) {
         modal = document.createElement("div");
@@ -599,11 +576,10 @@ function openShowDetails(show) {
         };
     }
 
-    // Sæt indhold
     modal.querySelector("#show-title").textContent = show.title;
     modal.querySelector("#show-dates").textContent = `Start: ${show.startDate} | Slut: ${show.endDate}`;
     modal.querySelector("#show-employees").textContent =
-        `Medarbejdere: ${ (show.employees || []).map(e => e.firstname + " " + e.lastname).join(", ") || "Ingen" }`;
+        `Medarbejdere: ${(show.employees || []).map(e => e.firstname + " " + e.lastname).join(", ") || "Ingen"}`;
 
     modal.style.display = "block";
 }

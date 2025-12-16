@@ -1,5 +1,6 @@
 import { initManagerDashboard } from './managerDashboard.js';
 import { initLogin } from './login.js';
+import {initEmployeeDashboard} from "./employeeDashboard.js";
 
 export async function navigateTo(page) {
     const response = await fetch(`./fragment/${page}.html`);
@@ -10,6 +11,8 @@ export async function navigateTo(page) {
         await initManagerDashboard();
     } else if (page === 'login') {
         initLogin();
+    } else if (page === 'employeeDashboard') {
+        initEmployeeDashboard()
     }
 }
 
