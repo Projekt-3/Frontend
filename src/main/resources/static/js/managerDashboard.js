@@ -10,13 +10,16 @@ export async function initManagerDashboard() {
     setupModal("readEmpModal", "all-emp-modal")
     setupModal("createShowModal", "create-show-modal")
     setupModal("createShiftModal", "create-shift-modal");
+    setupModal("readAllShifts", "all-shifts-modal")
     setupEmpForm()
     setupEmployeeClick()
+    setupShiftClick()
     setupShowForm()
     setupShiftForm()
     setupAddEmpModal();
     await loadShows()
     await loadEmployees()
+    await loadShifts()
 }
 
 let currentShow = null;
@@ -83,7 +86,23 @@ function setupModal(openBtnId, modalId) {
             const employees = await response.json()
             populateEmployeeSelect(employees)
         }
+        if (modalId === "create-shift-modal") {
+            const token = sessionStorage.getItem("token");
+
+            const response = await fetch("http://localhost:8080/dashboard/manager/shows", {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+            const shows = await response.json();
+            showSelect(shows);
+        }
         modal.style.display = "block";
+
+        if (modalId === "all-shifts-modal") {
+            await loadShifts();
+        }
     }
 
     closeModalBtn.onclick = () => modal.style.display = "none";
@@ -101,6 +120,8 @@ function setupModal(openBtnId, modalId) {
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") modal.style.display = "none";
     });
+    window.onclick = (event) => { if (event.target === modal) modal.style.display = "none"; };
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape") modal.style.display = "none"; });
 
 }
 
@@ -146,13 +167,13 @@ function setupEmpForm() {
 }
 
 // ---------- LOAD EMPLOYEES ------------
-async function loadEmployees() {
+async function loadEmployees(){
     const response = await fetch("http://localhost:8080/dashboard/manager/employees", {
         method: "GET",
         credentials: "include"
     })
 
-    if (!response.ok) {
+    if(!response.ok){
         console.error("fejl ved indhentning af medarbejdere")
         return;
     }
@@ -163,7 +184,7 @@ async function loadEmployees() {
 
 }
 
-function displayEmployees(list) {
+function displayEmployees(list){
     const container = document.getElementById("emp-list")
     console.log("container fundet: ", container)
     container.innerHTML = ""
@@ -313,7 +334,7 @@ function populateEmployeeSelect(employees) {
 }
 
 // ---------- CREATE SHOW -------------
-function setupShowForm() {
+function setupShowForm(){
     const showForm = document.getElementById("show-form");
 
     showForm.onsubmit = async (event) => {
@@ -321,7 +342,7 @@ function setupShowForm() {
 
         const selectedEmployees = Array.from(
             document.getElementById("employee").selectedOptions
-        ).map(opt => Number(opt.value));
+        ).map(opt =>Number( opt.value));
 
         const show = {
             name: document.getElementById("title").value,
@@ -343,7 +364,6 @@ function setupShowForm() {
         await loadShows();
     };
 }
-
 // ------- DELETE EMP -------
 async function deleteEmp(employee) {
     const id = employee.id;
@@ -367,6 +387,18 @@ async function deleteEmp(employee) {
 }
 
 // ---------- CREATE SHIFT -------------
+function showSelect(shows) {
+    const select = document.getElementById("showSelect");
+    select.innerHTML = "";
+
+    shows.forEach(show => {
+        const option = document.createElement("option")
+        option.value = show.id;
+        option.textContent = show.title
+        select.appendChild(option)
+    })
+}
+
 function setupShiftForm() {
     const shiftForm = document.getElementById("shift-form");
 
@@ -375,22 +407,142 @@ function setupShiftForm() {
 
         const shift = {
             plannedStart: document.getElementById("plannedStart").value,
-            plannedEnd: document.getElementById("plannedEnd").value
+            plannedEnd: document.getElementById("plannedEnd").value,
+            show: {
+                id: Number(document.getElementById("showSelect").value) // Konverterer value fra string til et tal
+            }
         };
 
-        const respone = await fetch("http://localhost:8080/dashboard/manager/register/shift", {
+        const response = await fetch("http://localhost:8080/dashboard/manager/register/shift", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(shift)
         });
 
-        const result = await respone.text();
+        const result = await response.text();
         alert(result);
         shiftForm.reset();
         document.getElementById("create-shift-modal").style.display = "none";
     })
 }
 
+// ---------- LOAD SHIFTS --------------
+async function loadShifts() {
+
+    const token = sessionStorage.getItem("token");
+    const response = await fetch("http://localhost:8080/dashboard/manager/shifts", {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+
+    })
+
+    if (!response.ok) {
+        console.error("Fejl ved indhentning af vager");
+        return;
+    }
+
+    const shifts = await response.json();
+    displayShifts(shifts);
+}
+
+function displayShifts(list) {
+    const container = document.getElementById("shift-list")
+    container.innerHTML = "";
+
+    list.forEach(shift => {
+        const div = document.createElement("div")
+        div.className = "shift"
+        div.dataset.id = shift.id
+        div.textContent = `${shift.showTitle || "Ingen forestilling"}
+        ${shift.plannedStart} - ${shift.plannedEnd}
+        (Vagt #${shift.id})`;
+        container.appendChild(div);
+    });
+    setupShiftClick();
+}
+
+// ---- LOAD SPECIFIC SHIFT ----
+function displayShiftModal(shift) {
+    const modal = document.getElementById("shift-modal")
+    const container = document.getElementById("shift-details")
+
+    container.innerHTML = `
+        <p><strong>Show titel:</strong> ${shift.showTitle}</p>
+        <p><strong>Starttidspunkt:</strong> ${shift.plannedStart}</p>
+        <p><strong>Sluttidspunkt:</strong> ${shift.plannedEnd}</p>
+    `;
+
+    modal.style.display = "block";
+
+    document.getElementById("delete-shift").onclick = function () {
+        deleteShift(shift);
+    }
+        const closeBtn = modal.querySelector(".close")
+        closeBtn.onclick = () => modal.style.display = "none";
+}
+
+function setupShiftClick() {
+    const container = document.getElementById("shift-list");
+
+    container.addEventListener("click", async event => {
+        const div = event.target.closest(".shift")
+        if (!div) return;
+
+        const id = div.dataset.id;
+        if (!id) return;
+
+        try {
+            const token = sessionStorage.getItem("token");
+            const response = await fetch(`http://localhost:8080/dashboard/manager/shift/${id}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+            if (!response.ok) {
+                alert("Kunne ikke hente vagt info");
+                return;
+            }
+
+            const shift = await response.json();
+            displayShiftModal(shift);
+        } catch (error) {
+            console.log(error);
+        }
+    });
+}
+
+// ------- DELETE SHIFT -------
+
+async function deleteShift(shift) {
+    const id = shift.id;
+
+    const confirmed = confirm("Er du sikker på at du vil slette denne vagt?")
+    if (!confirmed) return;
+
+    try {
+        const token = sessionStorage.getItem("token");
+        const response = await fetch(`http://localhost:8080/dashboard/manager/shift/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+        if (response.ok) {
+            alert("Vagten er blevet slettet");
+            document.getElementById("shift-modal").style.display = "none";
+            await loadShifts();
+        } else {
+            const msg = await response.text();
+            alert("Fejl: " + msg)
+        }
+    } catch (error) {
+        console.log(error)
+        alert("Noget gik galt ved sletning")
+    }
+}
 
 //--------------------LOAD SHOWS-----------
 async function loadShows() {
@@ -429,7 +581,7 @@ function displayShows(list) {
             <div class="show-dates">Start: ${start}<br>Slut: ${end}</div>
         `;
 
-
+        // Tilføj klik-event
         card.addEventListener("click", () => {
             openShowDetails(show);
         });
