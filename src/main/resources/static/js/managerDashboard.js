@@ -13,10 +13,12 @@ export async function initManagerDashboard(){
     setupModal("readAllShifts", "all-shifts-modal")
     setupEmpForm()
     setupEmployeeClick()
+    setupShiftClick()
     setupShowForm()
     setupShiftForm()
     await loadShows()
     await loadEmployees()
+    await loadShifts()
 }
 
 // Dynamisk load CSS
@@ -435,14 +437,95 @@ function displayShifts(list) {
     list.forEach(shift => {
         const div = document.createElement("div")
         div.className = "shift"
-
+        div.dataset.id = shift.id
         div.textContent = `${shift.showTitle || "Ingen forestilling"}
         ${shift.plannedStart} - ${shift.plannedEnd}
         (Vagt #${shift.id})`;
         container.appendChild(div);
     });
+    setupShiftClick();
 }
 
+// ---- LOAD SPECIFIC SHIFT ----
+function displayShiftModal(shift) {
+    const modal = document.getElementById("shift-modal")
+    const container = document.getElementById("shift-details")
+
+    container.innerHTML = `
+        <p><strong>Show titel:</strong> ${shift.showTitle}</p>
+        <p><strong>Starttidspunkt:</strong> ${shift.plannedStart}</p>
+        <p><strong>Sluttidspunkt:</strong> ${shift.plannedEnd}</p>
+    `;
+
+    modal.style.display = "block";
+
+    document.getElementById("delete-shift").onclick = function () {
+        deleteShift(shift);
+    }
+        const closeBtn = modal.querySelector(".close")
+        closeBtn.onclick = () => modal.style.display = "none";
+}
+
+function setupShiftClick() {
+    const container = document.getElementById("shift-list");
+
+    container.addEventListener("click", async event => {
+        const div = event.target.closest(".shift")
+        if (!div) return;
+
+        const id = div.dataset.id;
+        if (!id) return;
+
+        try {
+            const token = sessionStorage.getItem("token");
+            const response = await fetch(`http://localhost:8080/dashboard/manager/shift/${id}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+            if (!response.ok) {
+                alert("Kunne ikke hente vagt info");
+                return;
+            }
+
+            const shift = await response.json();
+            displayShiftModal(shift);
+        } catch (error) {
+            console.log(error);
+        }
+    });
+}
+
+// ------- DELETE SHIFT -------
+
+async function deleteShift(shift) {
+    const id = shift.id;
+
+    const confirmed = confirm("Er du sikker på at du vil slette denne vagt?")
+    if (!confirmed) return;
+
+    try {
+        const token = sessionStorage.getItem("token");
+        const response = await fetch(`http://localhost:8080/dashboard/manager/shift/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+        if (response.ok) {
+            alert("Vagten er blevet slettet");
+            document.getElementById("shift-modal").style.display = "none";
+            await loadShifts();
+        } else {
+            const msg = await response.text();
+            alert("Fejl: " + msg)
+        }
+    } catch (error) {
+        console.log(error)
+        alert("Noget gik galt ved sletning")
+    }
+}
 
 //--------------------LOAD SHOWS-----------
 async function loadShows() {
