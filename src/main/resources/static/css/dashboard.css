@@ -84,3 +84,69 @@ form {
     color: #555;
 }
 
+
+#show-modal {
+    z-index: 1000;
+}
+
+
+#add-emp-to-show-modal {
+    z-index: 1100;
+}
+
+/* ===== Medarbejder valg i modal ===== */
+#show-employee-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    text-align: left;
+    padding: 5px;
+}
+
+.employee-item {
+    padding: 10px;
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: rgba(255, 215, 0, 0.05);
+    color: #d9b673;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.employee-item:hover {
+    background-color: rgba(255, 215, 0, 0.15);
+}
+
+.employee-item.selected {
+    background-color: #d9b673;
+    color: #232222;
+    font-weight: bold;
+    border-color: #e8c980;
+}
+
+.checkbox-list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.checkbox-item input[type="checkbox"] {
+    accent-color: #d9b673;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+}
