@@ -497,6 +497,9 @@ function setupShiftClick() {
     });
 }
 
+// ------- EDIT SHIFT -------
+
+
 // ------- DELETE SHIFT -------
 
 async function deleteShift(shift) {
