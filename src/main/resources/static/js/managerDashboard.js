@@ -18,6 +18,7 @@ export async function initManagerDashboard() {
     setupShowForm()
     setupShiftForm()
     setupAddEmpModal();
+    setupEditShiftModal()
     await loadShows()
     await loadEmployees()
     await loadShifts()
@@ -25,6 +26,8 @@ export async function initManagerDashboard() {
 }
 
 let currentShow = null;
+let allShows = [];
+let shifts = [];
 
 // -------- MODAL ---------
 function setupModal(openBtnId, modalId) {
@@ -409,7 +412,7 @@ async function loadShifts() {
         return;
     }
 
-    const shifts = await response.json();
+    shifts = await response.json();
     displayShifts(shifts);
 }
 
@@ -445,8 +448,14 @@ function displayShiftModal(shift) {
     document.getElementById("delete-shift").onclick = function () {
         deleteShift(shift);
     }
-    const closeBtn = modal.querySelector(".close")
-    closeBtn.onclick = () => modal.style.display = "none";
+
+    document.getElementById("edit-shift").onclick = () => {
+        modal.style.display = "none";
+        openEditShiftModal(shift);
+    }
+    modal.querySelector(".close").onclick = () => {
+        modal.style.display = "none";
+    };
 }
 
 function setupShiftClick() {
@@ -478,6 +487,78 @@ function setupShiftClick() {
             console.log(error);
         }
     });
+}
+
+// ------- EDIT SHIFT -------
+let currentEditShiftId = null;
+
+function setupEditShiftModal() {
+    const modal = document.getElementById("edit-shift-modal");
+    const closeBtn = modal.querySelector(".close");
+    const form = document.getElementById("edit-shift-form");
+
+    closeBtn.onclick = () => modal.style.display = "none";
+    window.onclick = (event) => { if (event.target === modal) modal.style.display = "none"; };
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape") modal.style.display = "none"; });
+
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const dto = {
+            plannedStart: document.getElementById("editPlannedStart").value,
+            plannedEnd: document.getElementById("editPlannedEnd").value,
+            showId: document.getElementById("editShowSelect").value || null
+        };
+
+        const token = sessionStorage.getItem("token");
+
+        const response = await fetch(`http://localhost:8080/dashboard/manager/shift/${currentEditShiftId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(dto)
+        });
+
+        if (!response.ok) {
+            alert("Fejl ved opdatering af vagt");
+            return;
+        }
+
+        alert("Vagt opdateret!");
+
+        modal.style.display = "none";
+
+        // Åbn “alle vagter”-modal
+        const allShiftsModal = document.getElementById("all-shifts-modal");
+        if (allShiftsModal) {
+            allShiftsModal.style.display = "block";
+            await loadShifts(); // hent og vis alle vagter
+        }
+    });
+}
+
+// Åbn modal med eksisterende data
+function openEditShiftModal(shift) {
+    currentEditShiftId = shift.id;
+
+    document.getElementById("editPlannedStart").value = shift.plannedStart;
+    document.getElementById("editPlannedEnd").value = shift.plannedEnd;
+
+    const select = document.getElementById("editShowSelect");
+    select.innerHTML = '<option value="">Ingen forestilling</option>';
+
+    allShows.forEach(show => { // shiftsShows kan fyldes med loadShows()
+        const option = document.createElement("option");
+        option.value = show.id;
+        option.textContent = show.title;
+        select.appendChild(option);
+    });
+
+    select.value = shift.showId || "";
+
+    document.getElementById("edit-shift-modal").style.display = "block";
 }
 
 // ------- DELETE SHIFT -------
@@ -524,8 +605,8 @@ async function loadShows() {
             return;
         }
 
-        const shows = await response.json();
-        displayShows(shows);
+        allShows = await response.json();
+        displayShows(allShows);
     } catch (error) {
         console.error("fejl: ", error);
 

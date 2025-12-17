@@ -131,7 +131,30 @@
   <div class="modal-content">
     <span class="close">&times;</span>
     <div id="shift-details"></div>
-    <button id="delete-shift">Slet</button>
+      <button id="edit-shift">Rediger vagt</button>
+      <button id="delete-shift">Slet</button>
+  </div>
+</div>
+
+<!--  EDIT SHIFT -->
+<div id="edit-shift-modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Rediger vagt</h2>
+    <form id="edit-shift-form">
+      <label for="editPlannedStart">Starttidspunkt</label>
+      <input type="time" id="editPlannedStart" required>
+
+      <label for="editPlannedEnd">Sluttidspunkt</label>
+      <input type="time" id="editPlannedEnd" required>
+
+      <label for="editShowSelect">Forestilling</label>
+      <select id="editShowSelect">
+        <option value="">Ingen forestillnig</option>
+      </select>
+
+      <button type="submit">Gem ændringer</button>
+    </form>
   </div>
 </div>
 
