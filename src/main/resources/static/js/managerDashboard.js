@@ -1,4 +1,4 @@
-export async function initManagerDashboard(){
+export async function initManagerDashboard() {
     // Load CSS til dashboard
     loadCSS('./css/modal.css');
     loadCSS('./css/dashboard.css');
@@ -16,10 +16,13 @@ export async function initManagerDashboard(){
     setupShiftClick()
     setupShowForm()
     setupShiftForm()
+    setupAddEmpModal();
     await loadShows()
     await loadEmployees()
     await loadShifts()
 }
+
+let currentShow = null;
 
 // Dynamisk load CSS
 function loadCSS(href) {
@@ -50,7 +53,7 @@ function setGreeting() {
 
     if (hour < 12) {
         greeting = "God morgen";
-    } else if(hour > 10 && hour < 12) {
+    } else if (hour > 10 && hour < 12) {
         greeting = "God formiddag"
     } else if (hour < 18) {
         greeting = "God eftermiddag";
@@ -65,17 +68,17 @@ function setGreeting() {
 }
 
 // -------- MODAL ---------
-function setupModal(openBtnId, modalId){
+function setupModal(openBtnId, modalId) {
     const modal = document.getElementById(modalId)
     const openModalBtn = document.getElementById(openBtnId)
     const closeModalBtn = modal.querySelector(".close");
 
     openModalBtn.onclick = async () => {
-        if(modalId === "all-emp-modal"){
+        if (modalId === "all-emp-modal") {
             await loadEmployees();
         }
         if (modalId === "create-show-modal") {
-            const response = await fetch("http://localhost:8080/dashboard/manager/employees",{
+            const response = await fetch("http://localhost:8080/dashboard/manager/employees", {
                 method: "GET",
                 credentials: "include"
             });
@@ -103,13 +106,27 @@ function setupModal(openBtnId, modalId){
     }
 
     closeModalBtn.onclick = () => modal.style.display = "none";
+   /* window.onclick = (event) => {
+        if (event.target == modal) modal.style.display = "none";
+    };
+
+    */
+
+    window.addEventListener("click", (event) => {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") modal.style.display = "none";
+    });
     window.onclick = (event) => { if (event.target === modal) modal.style.display = "none"; };
     document.addEventListener("keydown", (event) => { if (event.key === "Escape") modal.style.display = "none"; });
 
 }
 
 // --------- CREATE EMP -----------
-function setupEmpForm(){
+function setupEmpForm() {
     const empForm = document.getElementById("emp-form");
     const usernameInput = document.getElementById("username")
     const mailInput = document.getElementById("mail")
@@ -574,8 +591,11 @@ function displayShows(list) {
 }
 
 function openShowDetails(show) {
-    // Find eller opret modal
+
+    currentShow = show;
+
     let modal = document.getElementById("show-modal");
+
     if (!modal) {
         modal = document.createElement("div");
         modal.id = "show-modal";
@@ -586,29 +606,156 @@ function openShowDetails(show) {
                 <h2 id="show-title"></h2>
                 <p id="show-dates"></p>
                 <p id="show-employees"></p>
+                
+                <button id="add-employees-btn">Tilføj medarbejdere</button>
             </div>
         `;
         document.body.appendChild(modal);
+
+        modal.querySelector(".modal-content").addEventListener("click", e => e.stopPropagation());
 
         modal.querySelector(".close").onclick = () => {
             modal.style.display = "none";
         };
 
-        window.onclick = (event) => {
-            if (event.target == modal) modal.style.display = "none";
-        };
     }
 
-    // Sæt indhold
+
     modal.querySelector("#show-title").textContent = show.title;
     modal.querySelector("#show-dates").textContent = `Start: ${show.startDate} | Slut: ${show.endDate}`;
     modal.querySelector("#show-employees").textContent =
-        `Medarbejdere: ${ (show.employees || []).map(e => e.firstname + " " + e.lastname).join(", ") || "Ingen" }`;
+        `Medarbejdere: ${(show.employees || []).map(e => e.firstname + " " + e.lastname).join(", ") || "Ingen"}`;
+
+    modal.querySelector("#add-employees-btn").onclick = (e) => {
+        e.stopPropagation();
+        openAddEmployeesToShow(show.id);
+    };
 
     modal.style.display = "block";
 }
 
 
+//----------tilføj medarbejdere modal-----------
+async function openAddEmployeesToShow(showId) {
+
+    const form = document.getElementById("add-emp-to-show-form");
+    document.getElementById("selectedShowId").value = showId;
+
+    const response = await fetch("http://localhost:8080/dashboard/manager/employees", {
+        credentials: "include"
+    });
+
+    const employees = await response.json();
+    populateShowEmployeeCheckboxes(employees);
+
+    document.getElementById("add-emp-to-show-modal").style.display = "block";
 
 
+    form.onsubmit = async (event) => {
+        event.preventDefault();
 
+        const checkedBoxes = Array.from(
+            document.querySelectorAll("#show-employee-checkboxes input[type='checkbox']:checked")
+        );
+
+        if (checkedBoxes.length === 0) {
+            alert("Vælg mindst én medarbejder");
+            return;
+        }
+
+        const selectedEmployeeIds = checkedBoxes.map(cb => Number(cb.value));
+
+        // POST til backend
+        const response = await fetch(
+            `http://localhost:8080/dashboard/manager/shows/${showId}/employees`,
+            {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                credentials: "include",
+                body: JSON.stringify(selectedEmployeeIds)
+            }
+        );
+
+        if (!response.ok) {
+            alert("Kunne ikke tilføje medarbejdere");
+            return;
+        }
+
+        // 🔥 LIVE OPDATERING AF FORESTILLINGS-MODAL
+        const newEmployees = checkedBoxes.map(cb => ({
+            id: Number(cb.value),
+            firstname: cb.dataset.firstname,
+            lastname: cb.dataset.lastname
+        }));
+
+        currentShow.employees = currentShow.employees || [];
+        currentShow.employees.push(...newEmployees);
+
+        updateShowEmployeeUI();
+
+        document.getElementById("add-emp-to-show-modal").style.display = "none";
+    };
+}
+
+
+function setupAddEmpModal() {
+    const modal = document.getElementById("add-emp-to-show-modal");
+    if (!modal) {
+        console.warn("add-emp-to-show-modal ikke fundet");
+        return;
+    }
+
+    const modalContent = modal.querySelector(".modal-content");
+    const closeBtn = modal.querySelector(".close");
+
+
+    modalContent.addEventListener("click", e => e.stopPropagation());
+
+    closeBtn.onclick = () => {
+        modal.style.display = "none";
+    };
+
+    modal.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape") {
+            modal.style.display = "none";
+        }
+    });
+}
+
+
+function populateShowEmployeeCheckboxes(employees) {
+    const container = document.getElementById("show-employee-checkboxes");
+    if (!container) {
+        console.error("show-employee-checkboxes ikke fundet");
+        return;
+    }
+    container.innerHTML = "";
+
+    employees.forEach(emp => {
+        const label = document.createElement("label");
+        label.className = "checkbox-item";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = emp.id;
+        checkbox.dataset.firstname = emp.firstname;
+        checkbox.dataset.lastname = emp.lastname;
+
+        label.appendChild(checkbox);
+        label.append(` ${emp.firstname} ${emp.lastname} (${emp.role})`);
+
+        container.appendChild(label);
+    });
+}
+
+function updateShowEmployeeUI(){
+    document.getElementById("show-employees").textContent =   `Medarbejdere: ${
+        currentShow.employees
+            .map(e => e.firstname + " " + e.lastname)
+            .join(", ")
+    }`;
+}
