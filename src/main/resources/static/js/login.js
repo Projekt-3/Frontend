@@ -53,15 +53,25 @@ async function loadHeader() {
             .then(response => {
                 if (!response.ok) {
                     throw new Error("Invalid username or password");
-
                 }
                 return response.json();
             })
             .then(data => {
                 sessionStorage.setItem("token", data.token);
-                navigateTo("managerDashboard");
-            })
-            .catch(error => {
+
+                sessionStorage.setItem("employee", JSON.stringify(data.employee))
+
+                const role = data.employee.role.toUpperCase()
+                sessionStorage.setItem("role", role)
+
+                if (role === "MANAGER"){
+                    navigateTo("managerDashboard");
+                } else if (role === "CREW" || role === "CAST" || role === "TECH"){
+                    navigateTo("employeeDashboard");
+                } else {
+                    alert ("Ukendt rolle")
+                }
+            }).catch(error => {
                 document.getElementById("error").textContent = error.message;
             });
     });
