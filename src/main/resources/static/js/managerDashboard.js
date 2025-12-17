@@ -608,8 +608,9 @@ async function openAddEmployeesToShow(showId) {
     const form = document.getElementById("add-emp-to-show-form");
     document.getElementById("selectedShowId").value = showId;
 
+    const token = sessionStorage.getItem("token")
     const response = await fetch("http://localhost:8080/dashboard/manager/employees", {
-        credentials: "include"
+        headers: {  "Authorization": `Bearer ${token}`}
     });
 
     const employees = await response.json();
@@ -633,12 +634,12 @@ async function openAddEmployeesToShow(showId) {
         const selectedEmployeeIds = checkedBoxes.map(cb => Number(cb.value));
 
         // POST til backend
+        const token = sessionStorage.getItem("token")
         const response = await fetch(
             `http://localhost:8080/dashboard/manager/shows/${showId}/employees`,
             {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
-                credentials: "include",
+                headers: {"Content-Type": "application/json", "Authorization": `Bearer ${token}`},
                 body: JSON.stringify(selectedEmployeeIds)
             }
         );
