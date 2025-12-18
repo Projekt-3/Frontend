@@ -61,6 +61,8 @@ async function loadHeader() {
 
                 sessionStorage.setItem("employee", JSON.stringify(data.employee))
 
+                sessionStorage.setItem("employeeId", data.employee.id);
+
                 const role = data.employee.role.toUpperCase()
                 sessionStorage.setItem("role", role)
 

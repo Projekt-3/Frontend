@@ -131,11 +131,22 @@
   <div class="modal-content">
     <span class="close">&times;</span>
     <div id="shift-details"></div>
+      <button id="add-emp-to-shift-btn">Tilføj medarbejdere</button>
       <button id="edit-shift">Rediger vagt</button>
       <button id="delete-shift">Slet</button>
   </div>
 </div>
 
+<div id="add-emp-to-shift-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Tilføj medarbejdere til vagt</h2>
+        <form id="add-emp-to-shift-form">
+            <div id="shift-employee-checkboxes" class="checkbox-list"></div>
+            <button type="submit">Tilføj</button>
+        </form>
+    </div>
+</div>
 <!--  EDIT SHIFT -->
 <div id="edit-shift-modal" class="modal">
   <div class="modal-content">

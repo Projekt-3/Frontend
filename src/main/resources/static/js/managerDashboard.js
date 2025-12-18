@@ -453,8 +453,95 @@ function displayShiftModal(shift) {
         modal.style.display = "none";
         openEditShiftModal(shift);
     }
+
+    // ---- TILFØJ MEDARBEJDERE KNAP ----
+    const addEmpBtn = modal.querySelector("#add-emp-to-shift-btn");
+    addEmpBtn.onclick = () => openAddEmployeesToShiftModal(shift.id);
+
     modal.querySelector(".close").onclick = () => {
         modal.style.display = "none";
+    };
+}
+async function openAddEmployeesToShiftModal(shiftId) {
+    const modal = document.getElementById("add-emp-to-shift-modal");
+    const container = document.getElementById("shift-employee-checkboxes");
+    container.innerHTML = "";
+
+    const token = sessionStorage.getItem("token");
+
+    // Hent alle employees
+    const response = await fetch("http://localhost:8080/dashboard/manager/employees", {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+        alert("Kunne ikke hente medarbejdere");
+        return;
+    }
+
+    const employees = await response.json();
+
+    // Lav checkbox for hver employee
+    employees.forEach(emp => {
+        const label = document.createElement("label");
+        label.className = "checkbox-item";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = emp.id;
+
+        label.appendChild(checkbox);
+        label.append(` ${emp.firstname} ${emp.lastname} (${emp.role})`);
+
+        container.appendChild(label);
+    });
+
+    // Vis modal
+    modal.style.display = "block";
+
+    // Luk modal
+    modal.querySelector(".close").onclick = () => modal.style.display = "none";
+
+    // Form submit → POST til backend
+    const form = document.getElementById("add-emp-to-shift-form");
+    form.onsubmit = async (event) => {
+        event.preventDefault();
+
+        const selectedIds = Array.from(container.querySelectorAll("input[type=checkbox]:checked"))
+            .map(cb => Number(cb.value));
+
+        if (selectedIds.length === 0) {
+            alert("Vælg mindst én medarbejder");
+            return;
+        }
+
+        let allSuccess = true;
+
+        for (const employeeId of selectedIds) {
+            console.log("Tilføjer employeeId:", employeeId, "til shiftId:", shiftId);
+
+            const res = await fetch(
+                `http://localhost:8080/dashboard/shift/${shiftId}/employee/${employeeId}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    }
+                }
+            );
+
+            if (!res.ok) {
+                allSuccess = false; // ⚠️ markerer fejl
+                console.error(`Fejl ved at tilføje medarbejder ID ${employeeId}:`, await res.text());
+            }
+        }
+
+        if (allSuccess) {
+            alert("Medarbejdere tilføjet!");
+            modal.style.display = "none";
+        } else {
+            alert("Der opstod fejl ved at tilføje nogle medarbejdere. Se konsol.");
+        }
     };
 }
 
