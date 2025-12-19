@@ -374,6 +374,7 @@ function setupShiftForm() {
         event.preventDefault();
 
         const shift = {
+            date: document.getElementById("shiftDate").value,
             plannedStart: document.getElementById("plannedStart").value,
             plannedEnd: document.getElementById("plannedEnd").value,
             show: {
@@ -453,8 +454,95 @@ function displayShiftModal(shift) {
         modal.style.display = "none";
         openEditShiftModal(shift);
     }
+
+
+    const addEmpBtn = modal.querySelector("#add-emp-to-shift-btn");
+    addEmpBtn.onclick = () => openAddEmployeesToShiftModal(shift.id);
+
     modal.querySelector(".close").onclick = () => {
         modal.style.display = "none";
+    };
+}
+async function openAddEmployeesToShiftModal(shiftId) {
+    const modal = document.getElementById("add-emp-to-shift-modal");
+    const container = document.getElementById("shift-employee-checkboxes");
+    container.innerHTML = "";
+
+    const token = sessionStorage.getItem("token");
+
+
+    const response = await fetch("http://localhost:8080/dashboard/manager/employees", {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+        alert("Kunne ikke hente medarbejdere");
+        return;
+    }
+
+    const employees = await response.json();
+
+
+    employees.forEach(emp => {
+        const label = document.createElement("label");
+        label.className = "checkbox-item";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = emp.id;
+
+        label.appendChild(checkbox);
+        label.append(` ${emp.firstname} ${emp.lastname} (${emp.role})`);
+
+        container.appendChild(label);
+    });
+
+
+    modal.style.display = "block";
+
+
+    modal.querySelector(".close").onclick = () => modal.style.display = "none";
+
+
+    const form = document.getElementById("add-emp-to-shift-form");
+    form.onsubmit = async (event) => {
+        event.preventDefault();
+
+        const selectedIds = Array.from(container.querySelectorAll("input[type=checkbox]:checked"))
+            .map(cb => Number(cb.value));
+
+        if (selectedIds.length === 0) {
+            alert("Vælg mindst én medarbejder");
+            return;
+        }
+
+        let allSuccess = true;
+
+        for (const employeeId of selectedIds) {
+            console.log("Tilføjer employeeId:", employeeId, "til shiftId:", shiftId);
+
+            const res = await fetch(
+                `http://localhost:8080/dashboard/shift/${shiftId}/employee/${employeeId}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    }
+                }
+            );
+
+            if (!res.ok) {
+                allSuccess = false;
+                console.error(`Fejl ved at tilføje medarbejder ID ${employeeId}:`, await res.text());
+            }
+        }
+
+        if (allSuccess) {
+            alert("Medarbejdere tilføjet!");
+            modal.style.display = "none";
+        } else {
+            alert("Der opstod fejl ved at tilføje nogle medarbejdere. Se konsol.");
+        }
     };
 }
 
@@ -530,11 +618,11 @@ function setupEditShiftModal() {
 
         modal.style.display = "none";
 
-        // Åbn “alle vagter”-modal
+
         const allShiftsModal = document.getElementById("all-shifts-modal");
         if (allShiftsModal) {
             allShiftsModal.style.display = "block";
-            await loadShifts(); // hent og vis alle vagter
+            await loadShifts();
         }
     });
 }
