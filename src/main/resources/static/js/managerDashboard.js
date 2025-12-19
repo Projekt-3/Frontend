@@ -374,6 +374,7 @@ function setupShiftForm() {
         event.preventDefault();
 
         const shift = {
+            date: document.getElementById("shiftDate").value,
             plannedStart: document.getElementById("plannedStart").value,
             plannedEnd: document.getElementById("plannedEnd").value,
             show: {
@@ -454,7 +455,7 @@ function displayShiftModal(shift) {
         openEditShiftModal(shift);
     }
 
-    // ---- TILFØJ MEDARBEJDERE KNAP ----
+
     const addEmpBtn = modal.querySelector("#add-emp-to-shift-btn");
     addEmpBtn.onclick = () => openAddEmployeesToShiftModal(shift.id);
 
@@ -469,7 +470,7 @@ async function openAddEmployeesToShiftModal(shiftId) {
 
     const token = sessionStorage.getItem("token");
 
-    // Hent alle employees
+
     const response = await fetch("http://localhost:8080/dashboard/manager/employees", {
         headers: { "Authorization": `Bearer ${token}` }
     });
@@ -481,7 +482,7 @@ async function openAddEmployeesToShiftModal(shiftId) {
 
     const employees = await response.json();
 
-    // Lav checkbox for hver employee
+
     employees.forEach(emp => {
         const label = document.createElement("label");
         label.className = "checkbox-item";
@@ -496,13 +497,13 @@ async function openAddEmployeesToShiftModal(shiftId) {
         container.appendChild(label);
     });
 
-    // Vis modal
+
     modal.style.display = "block";
 
-    // Luk modal
+
     modal.querySelector(".close").onclick = () => modal.style.display = "none";
 
-    // Form submit → POST til backend
+
     const form = document.getElementById("add-emp-to-shift-form");
     form.onsubmit = async (event) => {
         event.preventDefault();
@@ -531,7 +532,7 @@ async function openAddEmployeesToShiftModal(shiftId) {
             );
 
             if (!res.ok) {
-                allSuccess = false; // ⚠️ markerer fejl
+                allSuccess = false;
                 console.error(`Fejl ved at tilføje medarbejder ID ${employeeId}:`, await res.text());
             }
         }
@@ -617,11 +618,11 @@ function setupEditShiftModal() {
 
         modal.style.display = "none";
 
-        // Åbn “alle vagter”-modal
+
         const allShiftsModal = document.getElementById("all-shifts-modal");
         if (allShiftsModal) {
             allShiftsModal.style.display = "block";
-            await loadShifts(); // hent og vis alle vagter
+            await loadShifts();
         }
     });
 }

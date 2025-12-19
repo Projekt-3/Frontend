@@ -10,18 +10,15 @@ export async function initEmployeeDashboard() {
     setGreeting();
     logOut();
 
-    // Hent employeeId fra sessionStorage
     const employeeId = sessionStorage.getItem("employeeId");
     if (!employeeId) {
         alert("Ingen medarbejder ID fundet. Log ind igen.");
         return;
     }
 
-    // Indlæs vagter
     loadMyShifts(employeeId);
 }
 
-// Funktion: hent og vis medarbejderens vagter
 async function loadMyShifts(employeeId) {
     const token = sessionStorage.getItem("token");
 
@@ -42,14 +39,13 @@ async function loadMyShifts(employeeId) {
         const div = document.createElement("div");
         div.className = "shift";
 
-        // Kombiner date + plannedStart til en JS Date, hvis date findes
         let shiftDateTime = "Uden dato";
         if (es.shift.date && es.shift.plannedStart) {
-            shiftDateTime = new Date(`${es.shift.date}T${es.shift.plannedStart}`).toLocaleString();
+            shiftDateTime = new Date(`${es.shift.date}T${es.shift.plannedStart.slice(0,5)}`).toLocaleString();
         }
 
         div.innerHTML = `
-        <p>${es.shift.showTitle || "Uden show"} - ${shiftDateTime}</p>
+        <p>${es.shift.showTitle || "Uden show"} - ${shiftDateTime.slice(0,17)} - ${es.shift.plannedEnd.slice(0,5)}</p>
         <button onclick="toggleCheckIn(${es.id}, ${es.checkInStatus})">
             ${es.checkInStatus ? "Check Ud" : "Check Ind"}
         </button>
@@ -58,7 +54,7 @@ async function loadMyShifts(employeeId) {
     });
 }
 
-// Funktion: toggle check-in status
+
 async function toggleCheckIn(employeeShiftId, currentStatus) {
     const token = sessionStorage.getItem("token");
 
@@ -76,7 +72,7 @@ async function toggleCheckIn(employeeShiftId, currentStatus) {
         alert("Fejl ved opdatering af check-in status");
         return;
     }
-    // Vis alert afhængigt af status
+
     if (!currentStatus) {
         alert("Du er nu checket ind!");
     } else {
@@ -89,6 +85,3 @@ async function toggleCheckIn(employeeShiftId, currentStatus) {
 
 // Gør toggleCheckIn tilgængelig globalt, så HTML onclick fungerer
 window.toggleCheckIn = toggleCheckIn;
-
-// Kør init ved load
-document.addEventListener("DOMContentLoaded", () => initEmployeeDashboard());
