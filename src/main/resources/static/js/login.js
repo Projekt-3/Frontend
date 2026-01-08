@@ -45,7 +45,7 @@ async function loadHeader() {
         const username = document.getElementById("username").value;
         const password = document.getElementById("password").value;
 
-        fetch("/api/dologin", { /*"http://localhost:8080/dologin",*/
+        fetch("/api/dologin", { /*"http://localhost:8080/dologin", LET ME PUSH*/
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({mail: username, password})
